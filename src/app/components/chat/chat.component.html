@@ -1,0 +1,131 @@
+<div class="flex flex-col h-screen bg-gray-50">
+  
+  <!-- Header -->
+  <div class="bg-white shadow-sm border-b border-gray-200 px-4 py-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-semibold text-gray-800 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            AI Data Assistant
+          </h1>
+          <p class="text-sm text-gray-600 mt-1">Ask questions about your data and get insights instantly</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <!-- Demo Mode Toggle -->
+          <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-600">Demo Mode</span>
+            <button
+              (click)="toggleDemoMode()"
+              [ngClass]="{'bg-primary-500': isDemoMode, 'bg-gray-300': !isDemoMode}"
+              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            >
+              <span
+                [ngClass]="{'translate-x-6': isDemoMode, 'translate-x-1': !isDemoMode}"
+                class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+              ></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Messages Area -->
+  <div class="flex-1 overflow-hidden">
+    <div class="h-full overflow-y-auto px-4 py-4" #messagesContainer>
+      <div class="max-w-4xl mx-auto">
+        
+        <!-- Welcome message -->
+        <div *ngIf="messages.length === 0" class="text-center py-12">
+          <div class="max-w-md mx-auto">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Welcome to AI Data Assistant</h3>
+            <p class="text-gray-500 mb-4">
+              {{ isDemoMode ? 'Demo mode is enabled. Try the example questions below to see how the interface works.' : 'Start by asking a question about your data. I can help you generate SQL queries and provide insights.' }}
+            </p>
+            <div class="text-left bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <p class="text-sm font-medium text-gray-700 mb-2">Example questions:</p>
+              <ul class="text-sm text-gray-600 space-y-1">
+                <li>• "Show me the top 10 customers by revenue"</li>
+                <li>• "What are the sales trends for the last quarter?"</li>
+                <li>• "Which products have the highest profit margin?"</li>
+                <li *ngIf="isDemoMode">• "Check inventory levels"</li>
+                <li *ngIf="isDemoMode">• "Test error handling"</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div *ngFor="let message of messages; trackBy: trackByMessageId">
+          <app-message [message]="message"></app-message>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="bg-white border-t border-gray-200 px-4 py-4">
+    <div class="max-w-4xl mx-auto">
+      <form (ngSubmit)="sendMessage()" class="flex space-x-3">
+        <div class="flex-1 relative">
+          <input
+            type="text"
+            [(ngModel)]="currentMessage"
+            name="message"
+            placeholder="Ask a question about your data..."
+            [disabled]="isLoading"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none pr-12 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            (keydown.enter)="onEnterKey($event)"
+            #messageInput
+          />
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <span class="text-xs text-gray-400">Enter to send</span>
+          </div>
+        </div>
+        <button
+          type="submit"
+          [disabled]="!currentMessage.trim() || isLoading"
+          class="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2"
+        >
+          <svg *ngIf="!isLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+          <svg *ngIf="isLoading" class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span class="hidden sm:inline">{{ isLoading ? 'Sending...' : 'Send' }}</span>
+        </button>
+      </form>
+      
+      <!-- Connection status -->
+      <div class="mt-2 flex items-center justify-between">
+        <div class="flex items-center space-x-2 text-xs">
+          <div class="flex items-center space-x-1">
+            <div [ngClass]="{'bg-blue-400': isDemoMode, 'bg-green-400': !connectionError && !isDemoMode, 'bg-red-400': connectionError && !isDemoMode}" 
+                 class="w-2 h-2 rounded-full"></div>
+            <span [ngClass]="{'text-blue-600': isDemoMode, 'text-green-600': !connectionError && !isDemoMode, 'text-red-600': connectionError && !isDemoMode}">
+              {{ isDemoMode ? 'Demo Mode' : (connectionError ? 'Disconnected' : 'Connected') }}
+            </span>
+          </div>
+          <span class="text-gray-400">•</span>
+          <span class="text-gray-500">{{ messages.length }} messages</span>
+        </div>
+        <button 
+          *ngIf="messages.length > 0"
+          (click)="clearChat()"
+          class="text-xs text-gray-500 hover:text-red-500 transition-colors duration-200"
+        >
+          Clear chat
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
