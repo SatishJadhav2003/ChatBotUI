@@ -1,11 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChatMessage } from '../../services/chat.service';
+import { ChartComponent } from '../chart/chart.component';
 
 @Component({
   selector: 'app-message',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ChartComponent],
   templateUrl: './message.component.html',
   styleUrls: ['./message.component.css']
 })

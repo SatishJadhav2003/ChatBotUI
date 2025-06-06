@@ -25,6 +25,10 @@ This is a complete Angular 18 + Tailwind CSS chatbot interface that integrates w
 - ✅ **Insight Display** - Formatted AI insights in chat bubbles
 - ✅ **SQL Query Display** - Syntax-highlighted code blocks
 - ✅ **Responsive Tables** - Scrollable data tables with proper styling
+- ✅ **Chart Visualization** - Interactive charts with Chart.js integration
+- ✅ **Chart Download** - PNG export functionality for all charts
+- ✅ **Multiple Chart Types** - Bar, pie, line, stacked bar, and backend images
+- ✅ **Backend Chart Support** - Display pre-generated chart images
 - ✅ **Empty States** - Handling for no data scenarios
 - ✅ **Error States** - Clear error messaging
 
@@ -48,11 +52,21 @@ c:\TFS\ChatBotUI/
 ├── src/
 │   ├── app/
 │   │   ├── components/
-│   │   │   ├── chat.component.ts          # Main chat interface
-│   │   │   └── message.component.ts       # Individual message display
+│   │   │   ├── chat/
+│   │   │   │   ├── chat.component.ts      # Main chat interface
+│   │   │   │   ├── chat.component.html    # Chat template
+│   │   │   │   └── chat.component.css     # Chat styles
+│   │   │   ├── message/
+│   │   │   │   ├── message.component.ts   # Individual message display
+│   │   │   │   ├── message.component.html # Message template
+│   │   │   │   └── message.component.css  # Message styles
+│   │   │   └── chart/
+│   │   │       ├── chart.component.ts     # Chart visualization
+│   │   │       ├── chart.component.html   # Chart template
+│   │   │       └── chart.component.css    # Chart styles
 │   │   ├── services/
-│   │   │   ├── chat.service.ts            # API communication
-│   │   │   └── demo.service.ts            # Demo mode functionality
+│   │   │   ├── chat.service.ts            # API communication & interfaces
+│   │   │   └── demo.service.ts            # Demo mode with chart examples
 │   │   ├── app.component.ts               # Root component
 │   │   ├── app.component.html             # Root template
 │   │   ├── app.config.ts                  # App configuration
@@ -65,10 +79,11 @@ c:\TFS\ChatBotUI/
 │   └── main.ts                            # Bootstrap
 ├── tailwind.config.js                     # Tailwind configuration
 ├── postcss.config.js                      # PostCSS configuration
-├── package.json                           # Dependencies
+├── package.json                           # Dependencies (includes Chart.js)
 ├── angular.json                           # Angular CLI config
 ├── README.md                              # Project documentation
-└── backend-example.md                     # Python API example
+├── backend-example.md                     # Python API example
+└── CHART-TESTING.md                       # Chart integration test results
 ```
 
 ## 🚀 Quick Start
@@ -88,10 +103,17 @@ Navigate to `http://localhost:4200`
 
 ### 4. Test Demo Mode
 The application starts in demo mode by default. Try these questions:
-- "Show me sales data"
-- "Display customer information"
-- "Check inventory levels"
-- "Test error handling"
+
+**Chart Examples:**
+- "Show me sales data" → Interactive bar chart
+- "Display customer information" → Pie chart segmentation
+- "Check inventory levels" → Stacked bar chart
+- "Show me trends over time" → Dual-axis line chart
+- "Generate backend report" → Backend-rendered chart image
+
+**Other Examples:**
+- "Test error handling" → Error state demonstration
+- Any other question → General data response
 
 ## 🔧 Configuration
 

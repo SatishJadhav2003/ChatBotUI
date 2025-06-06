@@ -76,7 +76,6 @@ export class ChatService {
   getApiUrl(): string {
     return this.apiUrl;
   }
-
   sendMessage(query: string): Observable<ChatResponse> {
     if (this.demoMode) {
       return this.demoService.processQuestion(query);
@@ -84,8 +83,7 @@ export class ChatService {
 
     const payload: ChatRequest = { query };
     
-    return this.http.post<any>(`${this.apiUrl}`, {query})
-      .pipe(
+    return this.http.post<any>(`${this.apiUrl}`, {query})      .pipe(
         map(response => this.parseApiResponse(response)),
         catchError(this.handleError)
       );
@@ -93,14 +91,10 @@ export class ChatService {
 
   public parseApiResponse(response: any): ChatResponse {
     // Create a copy of the response to avoid mutating the original
-    const parsedResponse: ChatResponse = { ...response };
-
-    // Handle chart_data - it can come as a string (JSON) or already as an object
+    const parsedResponse: ChatResponse = { ...response };    // Handle chart_data - it can come as a string (JSON) or already as an object
     if (response.chart_data) {
       let chartData = response.chart_data;
-
-      // Only try to parse if it's actually a string
-      if (typeof response.chart_data === 'string') {
+        // Only try to parse if it's actually a string      if (typeof response.chart_data === 'string') {
         try {
           // First try standard JSON.parse
           chartData = JSON.parse(response.chart_data);
@@ -109,7 +103,6 @@ export class ChatService {
           try {
             console.log('Standard JSON parsing failed, attempting to fix malformed JSON...');
             const fixedJsonString = this.fixMalformedJson(response.chart_data);
-            console.log('Attempting to parse fixed JSON string:', fixedJsonString);
             chartData = JSON.parse(fixedJsonString);
             console.log('Successfully parsed fixed JSON');
           } catch (secondError) {
@@ -192,9 +185,7 @@ export class ChatService {
       if (!data.chart_config || !data.chart_config.image_data) {
         return false;
       }
-    }
-
-    return true;
+    }    return true;
   }
 
   private normalizeChartDataProperties(data: ChartData): ChartData {
@@ -245,12 +236,8 @@ export class ChatService {
         
         return normalizedDataset;
       });
-    }
-
-    return normalized;
-  }
-
-  private fixMalformedJson(malformedJson: string): string {
+    }    return normalized;
+  }  private fixMalformedJson(malformedJson: string): string {
     console.log('Attempting to fix malformed JSON...');
     
     // Remove newlines and extra spaces for easier processing
@@ -269,49 +256,32 @@ export class ChatService {
     fixed = fixed.replace(/,\s*'([^']*?)'/g, ', "$1"');
     fixed = fixed.replace(/'([^']*?)'\s*\]/g, '"$1"]');
     
-    // IMPROVED: Handle truncated data arrays - comprehensive patterns for different truncation scenarios
+    // Handle truncated data arrays - this is more comprehensive now
+    // Look for patterns like: , 31302. or , 31302 at the end
     const truncatedPatterns = [
-      // Most common: comma followed by incomplete number at end
-      /,\s*(\d+\.)\s*$/,                    // ends with ", 31302."
-      /,\s*(\d+)\s*$/,                      // ends with ", 31302"
-      /,\s*(\d+\.\d*)\s*$/,                 // ends with ", 31302.80" (partial decimal)
-      
-      // Array bracket followed by incomplete number at end
-      /\[\s*(\d+\.)\s*$/,                   // ends with "[31302."
-      /\[\s*(\d+\.\d*)\s*$/,                // ends with "[31302.80"
-      
-      // Special cases with trailing spaces or dots
-      /,\s*(\d+\.\s*)$/,                    // ends with ", 31302. " (with trailing space)
-      /,\s*(\d+\.(?!\d))\s*$/,              // ends with ", 31302." but not followed by digits
-      
-      // Handle cases where the truncation happens mid-decimal
-      /,\s*(\d+\.\d*(?:[^0-9\]\}]|$))/,     // truncated decimal not followed by digit, ] or }
+      /,\s*(\d+\.)\s*$/,           // ends with "31302."
+      /,\s*(\d+)\s*$/,             // ends with "31302"
+      /,\s*(\d+\.\d*)\s*$/,        // ends with "31302.80" (partial decimal)
+      /\[\s*(\d+\.)\s*$/,          // array starts with truncated number
+      /\[\s*(\d+\.\d*)\s*$/        // array starts with partial decimal
     ];
     
     let wasTruncated = false;
-    let matchedPattern = null;
     for (const pattern of truncatedPatterns) {
       if (pattern.test(fixed)) {
-        matchedPattern = pattern;
-        console.log('Found truncated number pattern:', pattern.toString());
-        const matches = fixed.match(pattern);
-        console.log('Match details:', matches);
-        
-        // Remove the truncated number and any trailing comma/space
+        console.log('Found truncated number pattern:', pattern);
+        // Remove the truncated number
         fixed = fixed.replace(pattern, '');
-        
-        // Clean up any resulting trailing comma or whitespace
-        fixed = fixed.replace(/,\s*$/, '');
-        fixed = fixed.trim();
-        
         wasTruncated = true;
-        console.log('After removing truncated pattern:', fixed);
         break;
       }
     }
     
     // If we found truncation, ensure proper closure
     if (wasTruncated) {
+      // Remove any trailing comma that might be left
+      fixed = fixed.replace(/,\s*$/, '');
+      
       // Count open brackets vs close brackets to determine how many we need to close
       const openBrackets = (fixed.match(/\[/g) || []).length;
       const closeBrackets = (fixed.match(/\]/g) || []).length;
@@ -324,13 +294,11 @@ export class ChatService {
       // Close missing array brackets
       for (let i = 0; i < (openBrackets - closeBrackets); i++) {
         fixed += ']';
-        console.log('Added closing bracket');
       }
       
       // Close missing object braces  
       for (let i = 0; i < (openBraces - closeBraces); i++) {
         fixed += '}';
-        console.log('Added closing brace');
       }
     }
     
@@ -342,6 +310,19 @@ export class ChatService {
     
     console.log('Fixed JSON string:', fixed);
     return fixed;
+  }
+
+  // Test method to verify chart_data parsing - can be removed in production
+  public testChartDataParsing(apiResponseWithStringChartData: any): ChatResponse {
+    console.log('Testing chart_data parsing...');
+    console.log('Input (string chart_data):', apiResponseWithStringChartData);
+    
+    const parsed = this.parseApiResponse(apiResponseWithStringChartData);
+    
+    console.log('Output (parsed chart_data):', parsed);
+    console.log('chart_data type:', typeof parsed.chart_data);
+    
+    return parsed;
   }
 
   /**
@@ -379,7 +360,7 @@ export class ChatService {
           chart_config: {
             labels: labels,
             datasets: [{
-              label: 'Total Sales',
+              label: 'Sales Data',
               data: values
             }]
           }
