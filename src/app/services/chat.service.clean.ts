@@ -155,6 +155,7 @@ export class ChatService {
 
     return parsedResponse;
   }
+
   private isValidChartData(data: any): boolean {
     // Basic validation for ChartData structure
     if (!data || typeof data !== 'object') {
@@ -164,9 +165,11 @@ export class ChatService {
     // Check for required render_mode
     if (!data.render_mode || (data.render_mode !== 'frontend' && data.render_mode !== 'backend')) {
       return false;
-    }    // Validate frontend chart structure
+    }
+
+    // Validate frontend chart structure
     if (data.render_mode === 'frontend') {
-      const validChartTypes = ['pie', 'line', 'bar', 'stacked_bar', 'donut', 'doughnut', 'area'];
+      const validChartTypes = ['pie', 'line', 'bar', 'stacked_bar'];
       
       if (!data.chart_type || !validChartTypes.includes(data.chart_type)) {
         return false;

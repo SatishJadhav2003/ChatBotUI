@@ -15,9 +15,226 @@ export class DemoService {
       delay(1000 + Math.random() * 2000) // Random delay between 1-3 seconds
     );
   }
-
   private generateDemoResponse(question: string): ChatResponse {
     const lowerQuestion = question.toLowerCase();
+
+    // Test exact API format with string chart_data (like your API)
+    if (lowerQuestion.includes('api test') || lowerQuestion.includes('test api')) {
+      return {
+        status: 'valid',
+        message: null,
+        sql_query: 'SELECT r.region_name AS RegionName, SUM(s.amount) AS TotalSales FROM regions r JOIN sales s ON r.region_id = s.region_id GROUP BY r.region_name ORDER BY TotalSales DESC;',
+        insight: 'The West region leads in sales with $92,007.85, followed by East at $76,906.80, Central at $76,207.10, North at $75,407.35, and South at $74,008.10.',
+        // THIS IS THE EXACT FORMAT YOUR API RETURNS - STRING WITH NEWLINES
+        chart_data: "{\n    render_mode: 'frontend',\n    chart_type: 'bar',\n    chart_config: {\n        labels: ['west', 'east', 'central', 'north', 'south'],\n        datasets: [{\n            label: 'total sales',\n            data: [92007.85, 76906.80, 76207.10, 75407.35, 74008.10]\n        }]\n    }\n}",
+        data: [
+          {'RegionName': 'West', 'TotalSales': 92007.85},
+          {'RegionName': 'East', 'TotalSales': 76906.80},
+          {'RegionName': 'Central', 'TotalSales': 76207.10},
+          {'RegionName': 'North', 'TotalSales': 75407.35},
+          {'RegionName': 'South', 'TotalSales': 74008.10}
+        ]
+      } as any; // Use 'as any' to allow string chart_data in demo
+    }    if (lowerQuestion.includes('bar chart') || lowerQuestion.includes('test bar')) {
+      return {
+        status: 'valid',
+        message: null,
+        sql_query: `SELECT 
+    department,
+    COUNT(*) as employee_count,
+    AVG(salary) as avg_salary,
+    SUM(budget_allocated) as total_budget
+FROM employees e
+JOIN departments d ON e.dept_id = d.dept_id
+GROUP BY department
+ORDER BY employee_count DESC;`,
+        insight: 'Department analysis shows Technology leading with 45 employees, followed by Sales with 38 employees. The data reveals balanced workforce distribution across key business areas. Technology department also has the highest average salary at $95K, reflecting the competitive tech talent market. Total budget allocation aligns with departmental priorities and headcount.',
+        data: [
+          { department: 'Technology', employee_count: 45, avg_salary: 95000, total_budget: 2850000 },
+          { department: 'Sales', employee_count: 38, avg_salary: 78000, total_budget: 2280000 },
+          { department: 'Marketing', employee_count: 25, avg_salary: 72000, total_budget: 1400000 },
+          { department: 'Operations', employee_count: 32, avg_salary: 68000, total_budget: 1600000 },
+          { department: 'Finance', employee_count: 18, avg_salary: 85000, total_budget: 1200000 },
+          { department: 'HR', employee_count: 12, avg_salary: 75000, total_budget: 800000 }
+        ],
+        chart_data: {
+          render_mode: 'frontend',
+          chart_type: 'bar',
+          chart_config: {
+            labels: ['Technology', 'Sales', 'Marketing', 'Operations', 'Finance', 'HR'],
+            datasets: [{
+              label: 'Employee Count',
+              data: [45, 38, 25, 32, 18, 12]
+            }]
+          }
+        }
+      };
+    }
+
+    if (lowerQuestion.includes('pie chart') || lowerQuestion.includes('test pie')) {
+      return {
+        status: 'valid',
+        message: null,
+        sql_query: `SELECT 
+    product_category,
+    SUM(sales_amount) as category_sales,
+    COUNT(*) as transaction_count,
+    AVG(sales_amount) as avg_transaction
+FROM sales s
+JOIN products p ON s.product_id = p.product_id
+WHERE s.sale_date >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+GROUP BY product_category
+ORDER BY category_sales DESC;`,
+        insight: 'Product category sales analysis for the last 90 days shows Electronics dominating with 42.5% of total sales ($340K), followed by Home & Garden at 23.8% ($190K). The data reveals strong consumer demand for technology products, with Gaming representing an emerging category at 15.2% market share. Fashion and Books maintain steady but smaller market positions.',
+        data: [
+          { product_category: 'Electronics', category_sales: 340000, transaction_count: 1200, avg_transaction: 283.33 },
+          { product_category: 'Home & Garden', category_sales: 190000, transaction_count: 950, avg_transaction: 200.00 },
+          { product_category: 'Gaming', category_sales: 122000, transaction_count: 680, avg_transaction: 179.41 },
+          { product_category: 'Fashion', category_sales: 95000, transaction_count: 750, avg_transaction: 126.67 },
+          { product_category: 'Books', category_sales: 53000, transaction_count: 1100, avg_transaction: 48.18 }
+        ],        chart_data: {
+          render_mode: 'frontend',
+          chart_type: 'pie',
+          chart_config: {
+            labels: ['Electronics', 'Home & Garden', 'Gaming', 'Fashion', 'Books'],
+            datasets: [{
+              label: 'Sales by Category',
+              data: [340000, 190000, 122000, 95000, 53000]
+            }]
+          }
+        }
+      };
+    }
+
+    if (lowerQuestion.includes('donut chart') || lowerQuestion.includes('test donut')) {
+      return {
+        status: 'valid',
+        message: null,
+        sql_query: `SELECT 
+    region_name,
+    SUM(order_value) as total_revenue,
+    COUNT(order_id) as order_count,
+    AVG(order_value) as avg_order_value,
+    SUM(profit_margin) as total_profit
+FROM orders o
+JOIN regions r ON o.region_id = r.region_id
+WHERE o.order_date >= DATE_SUB(CURDATE(), INTERVAL 180 DAY)
+GROUP BY region_name
+ORDER BY total_revenue DESC;`,
+        insight: 'Regional revenue distribution analysis for the last 6 months reveals North America leading with 35.2% of total revenue ($421K), followed by Europe at 28.7% ($344K). Asia-Pacific shows strong growth at 22.1% ($265K), indicating expanding market presence. Latin America and Middle East/Africa represent emerging markets with 9.8% and 4.2% respectively, presenting significant growth opportunities.',
+        data: [
+          { region_name: 'North America', total_revenue: 421000, order_count: 1580, avg_order_value: 266.46, total_profit: 84200 },
+          { region_name: 'Europe', total_revenue: 344000, order_count: 1290, avg_order_value: 266.67, total_profit: 68800 },
+          { region_name: 'Asia-Pacific', total_revenue: 265000, order_count: 1050, avg_order_value: 252.38, total_profit: 53000 },
+          { region_name: 'Latin America', total_revenue: 117000, order_count: 520, avg_order_value: 225.00, total_profit: 23400 },
+          { region_name: 'Middle East/Africa', total_revenue: 51000, order_count: 240, avg_order_value: 212.50, total_profit: 10200 }
+        ],
+        chart_data: {
+          render_mode: 'frontend',
+          chart_type: 'donut',
+          chart_config: {
+            labels: ['North America', 'Europe', 'Asia-Pacific', 'Latin America', 'Middle East/Africa'],
+            datasets: [{
+              label: 'Revenue by Region',
+              data: [421000, 344000, 265000, 117000, 51000]
+            }]
+          }
+        }      };
+    }    if (lowerQuestion.includes('multi area') || lowerQuestion.includes('test multi area')) {
+      return {
+        status: 'valid',
+        message: null,
+        sql_query: `SELECT 
+    CONCAT(YEAR(order_date), '-', LPAD(MONTH(order_date), 2, '0')) as month_year,
+    SUM(CASE WHEN region = 'North America' THEN order_value ELSE 0 END) as north_america_sales,
+    SUM(CASE WHEN region = 'Europe' THEN order_value ELSE 0 END) as europe_sales,
+    SUM(CASE WHEN region = 'Asia Pacific' THEN order_value ELSE 0 END) as asia_pacific_sales
+FROM orders o
+JOIN regions r ON o.region_id = r.region_id
+WHERE order_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+GROUP BY YEAR(order_date), MONTH(order_date)
+ORDER BY order_date;`,
+        insight: 'Multi-region sales analysis shows North America consistently leading with steady growth, followed by Europe and Asia Pacific. The area chart visualization clearly demonstrates seasonal patterns across all regions, with Q4 showing the strongest performance globally. North America grew 22% year-over-year, Europe 18%, and Asia Pacific 25%, indicating strong expansion in all markets.',
+        data: [
+          { month_year: '2024-01', north_america_sales: 42000, europe_sales: 32000, asia_pacific_sales: 21000 },
+          { month_year: '2024-02', north_america_sales: 39000, europe_sales: 29000, asia_pacific_sales: 21000 },
+          { month_year: '2024-03', north_america_sales: 48000, europe_sales: 35000, asia_pacific_sales: 25000 },
+          { month_year: '2024-04', north_america_sales: 50000, europe_sales: 37000, asia_pacific_sales: 25000 },
+          { month_year: '2024-05', north_america_sales: 52000, europe_sales: 38000, asia_pacific_sales: 28000 },
+          { month_year: '2024-06', north_america_sales: 55000, europe_sales: 40000, asia_pacific_sales: 30000 },
+          { month_year: '2024-07', north_america_sales: 58000, europe_sales: 42000, asia_pacific_sales: 32000 },
+          { month_year: '2024-08', north_america_sales: 56000, europe_sales: 41000, asia_pacific_sales: 31000 },
+          { month_year: '2024-09', north_america_sales: 59000, europe_sales: 43000, asia_pacific_sales: 33000 },
+          { month_year: '2024-10', north_america_sales: 62000, europe_sales: 45000, asia_pacific_sales: 35000 },
+          { month_year: '2024-11', north_america_sales: 64000, europe_sales: 46000, asia_pacific_sales: 35000 },
+          { month_year: '2024-12', north_america_sales: 56000, europe_sales: 42000, asia_pacific_sales: 30000 }
+        ],
+        chart_data: {
+          render_mode: 'frontend',
+          chart_type: 'area',
+          chart_config: {
+            labels: ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024', 'Aug 2024', 'Sep 2024', 'Oct 2024', 'Nov 2024', 'Dec 2024'],
+            datasets: [
+              {
+                label: 'North America',
+                data: [42000, 39000, 48000, 50000, 52000, 55000, 58000, 56000, 59000, 62000, 64000, 56000]
+              },
+              {
+                label: 'Europe',
+                data: [32000, 29000, 35000, 37000, 38000, 40000, 42000, 41000, 43000, 45000, 46000, 42000]
+              },
+              {
+                label: 'Asia Pacific',
+                data: [21000, 21000, 25000, 25000, 28000, 30000, 32000, 31000, 33000, 35000, 35000, 30000]
+              }
+            ]
+          }
+        }
+      };
+    }
+
+    if (lowerQuestion.includes('area chart') || lowerQuestion.includes('test area')) {
+      return {
+        status: 'valid',
+        message: null,
+        sql_query: `SELECT 
+    CONCAT(YEAR(order_date), '-', LPAD(MONTH(order_date), 2, '0')) as month_year,
+    SUM(order_value) as monthly_revenue,
+    COUNT(order_id) as monthly_orders,
+    AVG(order_value) as avg_monthly_order,
+    SUM(profit_margin) as monthly_profit
+FROM orders 
+WHERE order_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+GROUP BY YEAR(order_date), MONTH(order_date)
+ORDER BY order_date;`,
+        insight: 'Monthly revenue trend analysis over the past 12 months shows steady growth with seasonal peaks in November ($145K) and December ($128K) driven by holiday shopping. The lowest performance was in February ($89K), typical for post-holiday periods. Overall trend indicates 18% year-over-year growth with consistent customer acquisition.',
+        data: [
+          { month_year: '2024-01', monthly_revenue: 95000, monthly_orders: 420, avg_monthly_order: 226.19, monthly_profit: 19000 },
+          { month_year: '2024-02', monthly_revenue: 89000, monthly_orders: 380, avg_monthly_order: 234.21, monthly_profit: 17800 },
+          { month_year: '2024-03', monthly_revenue: 108000, monthly_orders: 465, avg_monthly_order: 232.26, monthly_profit: 21600 },
+          { month_year: '2024-04', monthly_revenue: 112000, monthly_orders: 485, avg_monthly_order: 230.93, monthly_profit: 22400 },
+          { month_year: '2024-05', monthly_revenue: 118000, monthly_orders: 510, avg_monthly_order: 231.37, monthly_profit: 23600 },
+          { month_year: '2024-06', monthly_revenue: 125000, monthly_orders: 535, avg_monthly_order: 233.64, monthly_profit: 25000 },
+          { month_year: '2024-07', monthly_revenue: 132000, monthly_orders: 565, avg_monthly_order: 233.63, monthly_profit: 26400 },
+          { month_year: '2024-08', monthly_revenue: 128000, monthly_orders: 550, avg_monthly_order: 232.73, monthly_profit: 25600 },
+          { month_year: '2024-09', monthly_revenue: 135000, monthly_orders: 580, avg_monthly_order: 232.76, monthly_profit: 27000 },
+          { month_year: '2024-10', monthly_revenue: 142000, monthly_orders: 605, avg_monthly_order: 234.71, monthly_profit: 28400 },
+          { month_year: '2024-11', monthly_revenue: 145000, monthly_orders: 620, avg_monthly_order: 233.87, monthly_profit: 29000 },
+          { month_year: '2024-12', monthly_revenue: 128000, monthly_orders: 545, avg_monthly_order: 234.86, monthly_profit: 25600 }
+        ],
+        chart_data: {
+          render_mode: 'frontend',
+          chart_type: 'area',
+          chart_config: {
+            labels: ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024', 'Aug 2024', 'Sep 2024', 'Oct 2024', 'Nov 2024', 'Dec 2024'],
+            datasets: [{
+              label: 'Monthly Revenue',
+              data: [95000, 89000, 108000, 112000, 118000, 125000, 132000, 128000, 135000, 142000, 145000, 128000]
+            }]
+          }
+        }
+      };
+    }
 
     if (lowerQuestion.includes('sales') || lowerQuestion.includes('revenue')) {
       return {
@@ -51,30 +268,8 @@ LIMIT 10;`,        insight: 'The sales data reveals strong performance in electr
             labels: ['iPhone 15', 'Samsung TV 55"', 'MacBook Pro', 'PlayStation 5', 'Air Fryer Deluxe', 'Wireless Headphones', 'Smart Watch', 'Gaming Chair'],
             datasets: [{
               label: 'Total Sales ($)',
-              data: [125000, 98000, 87500, 76000, 65000, 54000, 48000, 42000],
-              backgroundColor: '#3B82F6',
-              borderColor: '#1D4ED8',
-              borderWidth: 1
-            }],
-            options: {
-              responsive: true,
-              plugins: {
-                title: {
-                  display: true,
-                  text: 'Top Products by Sales (Last 30 Days)'
-                }
-              },
-              // scales: {
-              //   y: {
-              //     beginAtZero: true,
-              //     ticks: {
-              //       callback: function(value: any) {
-              //         return '$' + value.toLocaleString();
-              //       }
-              //     }
-              //   }
-              // }
-            }
+              data: [125000, 98000, 87500, 76000, 65000, 54000, 48000, 42000]
+            }]
           }
         }
       };

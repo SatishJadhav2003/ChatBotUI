@@ -45,8 +45,7 @@ export class ChartComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.chart) {
       this.chart.destroy();
     }
-  }
-  private renderFrontendChart(): void {
+  }  private renderFrontendChart(): void {
     try {
       if (!this.chartData.chart_config || !this.chartCanvas) {
         this.isError = true;
@@ -65,16 +64,30 @@ export class ChartComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isError = true;
         this.errorMessage = 'Could not get canvas context';
         return;
-      }      // Use chart service to process the chart data
+      }      // ENHANCED DEBUGGING - Log the exact chart type being processed
+      console.log('🎨 Chart Component - Chart data received:', this.chartData);
+      console.log('🎨 Chart Component - Chart type detected:', this.chartData.chart_type);
+      console.log('🎨 Chart Component - Chart config:', this.chartData.chart_config);
+      console.log('🎨 Chart Component - Render mode:', this.chartData.render_mode);
+
+      // CRITICAL: Log the exact type of chart_type property
+      console.log('🎨 Chart Component - Chart type typeof:', typeof this.chartData.chart_type);
+      console.log('🎨 Chart Component - Chart type value:', JSON.stringify(this.chartData.chart_type));
+
+      // Use chart service to process the chart data
+      const chartTypeToUse = this.chartData.chart_type || 'bar';
+      console.log('🎨 Chart Component - Chart type to use:', chartTypeToUse);
+      
       const processedChart = this.chartService.processChartData(
-        this.chartData.chart_type || 'bar',
+        chartTypeToUse,
         {
           labels: this.chartData.chart_config.labels || [],
           datasets: this.chartData.chart_config.datasets || []
         }
       );
 
-      console.log(`🎨 Rendering ${this.chartData.chart_type} chart with processed configuration`);
+      console.log('🎨 Rendering chart with type:', processedChart.type);
+      console.log('🎨 Final processed configuration:', processedChart.config);
       
       this.chart = new Chart(ctx, processedChart.config);
       

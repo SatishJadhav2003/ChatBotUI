@@ -38,14 +38,12 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       console.log('🧪 Development mode: chatComponent available on window object');
       console.log('💡 Test chart parsing with: window.chatComponent.testChartDataParsing()');
     }
-  }
-
-  ngAfterViewChecked(): void {
+  }  ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) {
       this.scrollToBottom();
       this.shouldScrollToBottom = false;
     }
-  }  onEnterKey(event: Event): void {
+  }onEnterKey(event: Event): void {
     const keyboardEvent = event as KeyboardEvent;
     if (!keyboardEvent.shiftKey) {
       event.preventDefault();
@@ -76,10 +74,8 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       content: '',
       timestamp: new Date(),
       isLoading: true
-    };
-
-    this.messages.push(userMessage, botMessage);
-    this.shouldScrollToBottom = true;
+    };    this.messages.push(userMessage, botMessage);
+    // this.shouldScrollToBottom = true; // Auto-scroll disabled
     
     const questionToSend = this.currentMessage.trim().replace(/FY/g, 'Financial Year'); // Replace FY with Financial Year
     this.currentMessage = '';
@@ -96,17 +92,16 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     });
   }
   sendSampleQuestion(question: string): void {
-    this.currentMessage = question.replace(/FY/g, 'Financial Year');
+    this.currentMessage = question.replace(/FY/gi, 'Financial Year');
     this.sendMessage();
   }
 
   private handleSuccessResponse(botMessage: ChatMessage, response: ChatResponse): void {
-    botMessage.isLoading = false;
-    botMessage.response = response;
+    botMessage.isLoading = false;    botMessage.response = response;
     botMessage.content = response.insight || 'Response received';
     this.isLoading = false;
     this.connectionError = false;
-    this.shouldScrollToBottom = true;
+    // this.shouldScrollToBottom = true; // Auto-scroll disabled
     this.saveMessagesToStorage();
   }
 
@@ -118,11 +113,10 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       sql_query: '',
       insight: '',
       data: []
-    };
-    botMessage.content = 'Error occurred';
+    };    botMessage.content = 'Error occurred';
     this.isLoading = false;
     this.connectionError = true;
-    this.shouldScrollToBottom = true;
+    // this.shouldScrollToBottom = true; // Auto-scroll disabled
     this.saveMessagesToStorage();
   }
 
@@ -134,10 +128,13 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   trackByMessageId(index: number, message: ChatMessage): string {
     return message.id;
   }
-
   private scrollToBottom(): void {
     try {
-      this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
+      const container = this.messagesContainer.nativeElement;
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
     } catch (err) {
       console.warn('Could not scroll to bottom:', err);
     }
@@ -160,115 +157,11 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   }
   private loadMessagesFromStorage(): void {
     try {
-      const saved = localStorage.getItem('chatMessages');
-      if (saved) {
+      const saved = localStorage.getItem('chatMessages');      if (saved) {
         this.messages = JSON.parse(saved);
-        this.shouldScrollToBottom = true;
+        this.shouldScrollToBottom = true; // Auto-scroll on page load/refresh
       }
     } catch (error) {
       console.warn('Could not load messages from localStorage:', error);
-    }
-  }  // Test method for demonstrating chart_data string parsing
-  // Can be called from browser console: window.chatComponent.testChartDataParsing()
-  public testChartDataParsing(): ChatResponse {
-    console.log('🧪 Testing chart_data string parsing...');
-    
-    // Example API response with chart_data as string (like your backend returns)
-    const mockApiResponseWithStringChartData = {
-      status: 'valid',
-      message: null,
-      sql_query: 'SELECT product_name, SUM(sales) FROM sales GROUP BY product_name',
-      insight: 'This is a test of chart_data string parsing functionality',
-      data: [
-        { product_name: 'Test Product A', total_sales: 1000 },
-        { product_name: 'Test Product B', total_sales: 1500 }
-      ],
-      chart_data: JSON.stringify({
-        render_mode: 'frontend',
-        chart_type: 'bar',
-        chart_config: {
-          labels: ['Test Product A', 'Test Product B'],
-          datasets: [{
-            label: 'Sales ($)',
-            data: [1000, 1500],
-            backgroundColor: '#3B82F6'
-          }],
-          options: {
-            responsive: true,
-            plugins: {
-              title: {
-                display: true,
-                text: 'Test Chart - Parsed from String'
-              }
-            }
-          }
-        }
-      })    };
-
-    // Test the parsing using parseApiResponse directly
-    const result = this.chatService.parseApiResponse(mockApiResponseWithStringChartData);
-    
-    console.log('✅ Parsing test completed!');
-    console.log('📊 Check console logs above for detailed parsing results');
-    
-    return result;
-  }
-
-  // Test method for demonstrating property normalization fix
-  // Can be called from browser console: window.chatComponent.testPropertyNormalization()
-  public testPropertyNormalization(): ChatResponse {
-    console.log('🔧 Testing property normalization fix...');
-    console.log('🐛 This simulates the exact error you encountered:');
-    console.log('   - chart_data comes as object (not string)');
-    console.log('   - API uses lowercase property names (backgroundcolor, bordercolor, etc.)');
-    console.log('   - Chart.js expects camelCase (backgroundColor, borderColor, etc.)');
-    
-    // Exact API response format that was causing the error
-    const mockApiResponseWithObjectChartData = {
-      status: 'valid',
-      message: null,
-      sql_query: 'SELECT product_name, SUM(sales) FROM sales GROUP BY product_name',
-      insight: 'Property normalization test - fixing backgroundcolor → backgroundColor',
-      data: [
-        { product_name: 'coffee table', total_sales: 14600.0 },
-        { product_name: 'desk chair', total_sales: 11301.5 }
-      ],
-      // This is an OBJECT (not string) with incorrect property names
-      chart_data: {
-        render_mode: 'frontend',
-        chart_type: 'bar',
-        chart_config: {
-          labels: ["coffee table", "desk chair", "smartphone", "laptop", "headphones", "bookshelf"],
-          datasets: [{
-            label: 'total sales amount',
-            data: [14600.0, 11301.5, 10400.5, 9801.0, 6300.5, 2400.75],
-            // WRONG PROPERTY NAMES (as returned by API)
-            backgroundcolor: '#3b82f6',
-            bordercolor: '#1d4ed8',
-            borderwidth: 1
-          }],
-          options: {
-            responsive: true,
-            plugins: {
-              title: {
-                display: true,
-                text: 'top selling products by sales amount'
-              }
-            }
-          }
-        }
-      }
-    };
-
-    console.log('📥 Input (API format with wrong property names):', mockApiResponseWithObjectChartData.chart_data);
-
-    // Test the parsing and normalization
-    const result = this.chatService.parseApiResponse(mockApiResponseWithObjectChartData);
-    
-    console.log('📤 Output (normalized for Chart.js):', result.chart_data);
-    console.log('✅ Property normalization test completed!');
-    console.log('🎯 Check that backgroundcolor → backgroundColor, bordercolor → borderColor, etc.');
-    
-    return result;
-  }
+    }  }
 }
