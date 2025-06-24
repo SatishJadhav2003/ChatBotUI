@@ -3,7 +3,6 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { DemoService } from './demo.service';
 
 export interface ChatRequest {
   query: string;
@@ -58,30 +57,14 @@ export interface ChatMessage {
 })
 export class ChatService {
   private readonly apiUrl = environment.apiUrl;
-  private demoMode = false; // Set to true to use demo mode without backend by default
 
-  constructor(
-    private http: HttpClient,
-    private demoService: DemoService
-  ) { }
-
-  setDemoMode(enabled: boolean): void {
-    this.demoMode = enabled;
-  }
-
-  isDemoMode(): boolean {
-    return this.demoMode;
-  }
+  constructor(private http: HttpClient) { }
 
   getApiUrl(): string {
     return this.apiUrl;
   }
 
   sendMessage(query: string): Observable<ChatResponse> {
-    if (this.demoMode) {
-      return this.demoService.processQuestion(query);
-    }
-
     const payload: ChatRequest = { query };
     
     return this.http.post<any>(`${this.apiUrl}`, {query})

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService, ChatMessage, ChatResponse } from '../../services/chat.service';
 import { MessageComponent } from '../message/message.component';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-chat',
@@ -14,36 +13,27 @@ import { environment } from '../../../environments/environment';
 })
 export class ChatComponent implements OnInit, AfterViewChecked {
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
-    messages: ChatMessage[] = [];
+  
+  messages: ChatMessage[] = [];
   currentMessage: string = '';
   isLoading: boolean = false;
   connectionError: boolean = false;
-  isDemoMode: boolean = false;
-  apiUrl: string = '';
   private shouldScrollToBottom: boolean = false;
 
-  constructor(private chatService: ChatService) {
-    // Get API URL from environment or service
-    this.apiUrl = this.chatService.getApiUrl();
-  }
+  constructor(private chatService: ChatService) { }
+
   ngOnInit(): void {
-    // Load messages from localStorage if available
     this.loadMessagesFromStorage();
-    // Initialize demo mode
-    this.isDemoMode = this.chatService.isDemoMode();
-    
-    // Make component accessible for testing (development only)
-    if (!environment.production) {
-      (window as any).chatComponent = this;
-      console.log('🧪 Development mode: chatComponent available on window object');
-      console.log('💡 Test chart parsing with: window.chatComponent.testChartDataParsing()');
-    }
-  }  ngAfterViewChecked(): void {
+  }
+
+  ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) {
       this.scrollToBottom();
       this.shouldScrollToBottom = false;
     }
-  }onEnterKey(event: Event): void {
+  }
+
+  onEnterKey(event: Event): void {
     const keyboardEvent = event as KeyboardEvent;
     if (!keyboardEvent.shiftKey) {
       event.preventDefault();
@@ -51,11 +41,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  toggleDemoMode(): void {
-    this.isDemoMode = !this.isDemoMode;
-    this.chatService.setDemoMode(this.isDemoMode);
-    this.connectionError = false;
-  }
   sendMessage(): void {
     if (!this.currentMessage.trim() || this.isLoading) {
       return;
@@ -74,10 +59,11 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       content: '',
       timestamp: new Date(),
       isLoading: true
-    };    this.messages.push(userMessage, botMessage);
-    // this.shouldScrollToBottom = true; // Auto-scroll disabled
+    };
+
+    this.messages.push(userMessage, botMessage);
     
-    const questionToSend = this.currentMessage.trim().replace(/FY/g, 'Financial Year'); // Replace FY with Financial Year
+    const questionToSend = this.currentMessage.trim().replace(/FY/g, 'Financial Year');
     this.currentMessage = '';
     this.isLoading = true;
     this.connectionError = false;
@@ -91,17 +77,14 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       }
     });
   }
-  sendSampleQuestion(question: string): void {
-    this.currentMessage = question.replace(/FY/gi, 'Financial Year');
-    this.sendMessage();
-  }
 
   private handleSuccessResponse(botMessage: ChatMessage, response: ChatResponse): void {
-    botMessage.isLoading = false;    botMessage.response = response;
+    botMessage.isLoading = false;
+    botMessage.response = response;
     botMessage.content = response.insight || 'Response received';
     this.isLoading = false;
     this.connectionError = false;
-    // this.shouldScrollToBottom = true; // Auto-scroll disabled
+    this.shouldScrollToBottom = true;
     this.saveMessagesToStorage();
   }
 
@@ -113,10 +96,11 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       sql_query: '',
       insight: '',
       data: []
-    };    botMessage.content = 'Error occurred';
+    };
+    botMessage.content = 'Error occurred';
     this.isLoading = false;
     this.connectionError = true;
-    // this.shouldScrollToBottom = true; // Auto-scroll disabled
+    this.shouldScrollToBottom = true;
     this.saveMessagesToStorage();
   }
 
@@ -128,13 +112,10 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   trackByMessageId(index: number, message: ChatMessage): string {
     return message.id;
   }
+
   private scrollToBottom(): void {
     try {
-      const container = this.messagesContainer.nativeElement;
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth'
-      });
+      this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
     } catch (err) {
       console.warn('Could not scroll to bottom:', err);
     }
@@ -148,20 +129,23 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     try {
       const messagesToSave = this.messages.map(msg => ({
         ...msg,
-        isLoading: false // Don't save loading state
+        isLoading: false
       }));
       localStorage.setItem('chatMessages', JSON.stringify(messagesToSave));
     } catch (error) {
       console.warn('Could not save messages to localStorage:', error);
     }
   }
+
   private loadMessagesFromStorage(): void {
     try {
-      const saved = localStorage.getItem('chatMessages');      if (saved) {
+      const saved = localStorage.getItem('chatMessages');
+      if (saved) {
         this.messages = JSON.parse(saved);
-        this.shouldScrollToBottom = true; // Auto-scroll on page load/refresh
+        this.shouldScrollToBottom = true;
       }
     } catch (error) {
       console.warn('Could not load messages from localStorage:', error);
-    }  }
+    }
+  }
 }
